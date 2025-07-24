@@ -9,6 +9,7 @@ def login(page):
     page.fill('input[name="email"]', "lyama@gmail.com")
     page.fill('input[name="password"]', "123456789")
     page.click('button:has-text("Login")')
+    page.wait_for_url(BASE_URL + "/tasks", timeout=5000)
     expect(page).to_have_url(BASE_URL + "/tasks")
 
 def test_create_task(page):

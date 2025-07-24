@@ -1,64 +1,65 @@
-name: Full API & UI Tests
+name: Run UI and API Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
-  run-tests:
+  test:
     runs-on: ubuntu-latest
+
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      # ------------------- Install and Run Backend -------------------
-      - name: Install and Start Backend
+      # Install backend dependencies and start server
+      - name: Setup Backend
+        working-directory: backend
         run: |
-          cd mern-crud-auth-master
           npm install
-          npm run start &  # Backend on port 4000
-          sleep 10
+          nohup npm start &
 
-      # ------------------- Install and Run Frontend -------------------
-      - name: Install and Start Frontend
+      # Install frontend (client) dependencies and start Vite in headless
+      - name: Setup Frontend
+        working-directory: client
         run: |
-          cd mern-crud-auth-master/client
           npm install
-          npm run dev &  # React frontend (usually Vite on port 5173)
-          sleep 10
+          nohup npm run dev -- --host &
 
-      # ------------------- Setup Python for Tests -------------------
-      - name: Setup Python
+      # Wait for frontend and backend to be up (adjust the delay if needed)
+      - name: Wait for servers
+        run: sleep 10
+
+      # Setup Python & dependencies
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Python dependencies + Playwright
-        working-directory: qa-tests
+      - name: Install Python dependencies
         run: |
-          pip install -r requirements.txt
-          pip install playwright
-          playwright install  # Install browser binaries
+          pip install -r qa-tests/requirements.txt
 
-      # ------------------- Run UI Tests -------------------
-      - name: Run UI Tests
-        working-directory: qa-tests/tests/UI
-        run: xvfb-run pytest
-
-      # ------------------- Run API Tests -------------------
+      # Run API tests (optional)
       - name: Run API Tests
         working-directory: qa-tests/tests/API
         run: pytest
+
+      # Run UI tests in headless mode
+      - name: Run UI Tests
+        working-directory: qa-tests/tests/UI
+        run: |
+          pytest --headed=false
