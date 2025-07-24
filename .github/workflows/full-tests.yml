@@ -29,14 +29,16 @@ jobs:
         run: |
           cd mern-crud-auth-master
           npm install
-          npm run dev
+          npm run dev &  # Backend on port 4000
+          sleep 10
 
       # ------------------- Install and Run Frontend -------------------
       - name: Install and Start Frontend
         run: |
           cd mern-crud-auth-master/client
           npm install
-          npm run dev
+          npm run dev &  # React frontend (usually Vite on port 5173)
+          sleep 10
 
       # ------------------- Setup Python for Tests -------------------
       - name: Setup Python
@@ -51,13 +53,12 @@ jobs:
           pip install playwright
           playwright install  # Install browser binaries
 
-      # ------------------- Run UI Tests -------------------
-      - name: Run UI Tests
-        working-directory: qa-tests/tests/UI
-        run: xvfb-run pytest
-
-
       # ------------------- Run API Tests -------------------
       - name: Run API Tests
         working-directory: qa-tests/tests/API
+        run: pytest test_api_crud.py
+
+      # ------------------- Run UI Tests -------------------
+      - name: Run UI Tests
+        working-directory: qa-tests/tests/UI
         run: pytest
