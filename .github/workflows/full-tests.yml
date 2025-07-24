@@ -1,65 +1,63 @@
-name: Run UI and API Tests
+name: Full API & UI Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  test:
+  run-tests:
     runs-on: ubuntu-latest
-
     services:
       mongo:
-        image: mongo
+        image: mongo:4.4
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Install backend dependencies and start server
-      - name: Setup Backend
-        working-directory: backend
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # ------------------- Install and Run Backend -------------------
+      - name: Install and Start Backend
         run: |
+          cd mern-crud-auth-master
           npm install
-          nohup npm start &
+          npm run run dev
 
-      # Install frontend (client) dependencies and start Vite in headless
-      - name: Setup Frontend
-        working-directory: client
+      # ------------------- Install and Run Frontend -------------------
+      - name: Install and Start Frontend
         run: |
+          cd mern-crud-auth-master/client
           npm install
-          nohup npm run dev -- --host &
+          npm run dev
 
-      # Wait for frontend and backend to be up (adjust the delay if needed)
-      - name: Wait for servers
-        run: sleep 10
-
-      # Setup Python & dependencies
-      - name: Set up Python
+      # ------------------- Setup Python for Tests -------------------
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies + Playwright
+        working-directory: qa-tests
         run: |
-          pip install -r qa-tests/requirements.txt
+          pip install -r requirements.txt
+          pip install playwright
+          playwright install  # Install browser binaries
 
-      # Run API tests (optional)
+      # ------------------- Run UI Tests -------------------
+      - name: Run UI Tests
+        working-directory: qa-tests/tests/UI
+        run: xvfb-run pytest
+
+
+      # ------------------- Run API Tests -------------------
       - name: Run API Tests
         working-directory: qa-tests/tests/API
         run: pytest
-
-      # Run UI tests in headless mode
-      - name: Run UI Tests
-        working-directory: qa-tests/tests/UI
-        run: |
-          pytest --headed=false
