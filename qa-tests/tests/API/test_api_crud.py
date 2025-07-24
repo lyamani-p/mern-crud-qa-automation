@@ -4,8 +4,20 @@ BASE_URL = "http://localhost:4000/api"
 EMAIL = "lyama@gmail.com"
 PASSWORD = "123456789"
 
+def register_test_user(session):
+    register_payload = {
+        "email": EMAIL,
+        "password": PASSWORD,
+        "name": "Test User"
+    }
+    res = session.post(f"{BASE_URL}/auth/register", json=register_payload)
+    # If user already exists, backend might return 400 or 409 — ignore those
+    if res.status_code not in [200, 201, 400, 409]:
+        raise Exception(f"Failed to register test user: {res.status_code} {res.text}")
+
 def test_full_task_crud_flow():
     session = requests.Session()
+    register_test_user(session) 
 
     # 1. Login and get token from cookie
     login_payload = {"email": EMAIL, "password": PASSWORD}
