@@ -26,6 +26,7 @@ def test_full_task_crud_flow():
 
     # Check token exists
     token = session.cookies.get("token")
+    print(token)
     assert token, "❌ No token found in cookies"
     print("✅ Logged in with token:", token)
 
