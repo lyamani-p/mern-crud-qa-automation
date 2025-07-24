@@ -56,9 +56,9 @@ jobs:
       # ------------------- Run UI Tests -------------------
       - name: Run UI Tests
         working-directory: qa-tests/tests/UI
-        run: pytest
+        run: xvfb-run pytest
 
       # ------------------- Run API Tests -------------------
       - name: Run API Tests
         working-directory: qa-tests/tests/API
-        run: pytest test_api_crud.py
+        run: pytest
