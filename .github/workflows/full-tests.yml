@@ -56,7 +56,7 @@ jobs:
       # ------------------- Run UI Tests -------------------
       - name: Run UI Tests
         working-directory: qa-tests/tests/UI
-        run: pytest --headed=false
+        run: pytest --browser chromium
 
       # ------------------- Run API Tests -------------------
       - name: Run API Tests
