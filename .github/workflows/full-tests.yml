@@ -50,6 +50,7 @@ jobs:
         working-directory: qa-tests
         run: |
           pip install -r requirements.txt
+	  pip install playwright
           playwright install  # Install browser binaries
 
       # ------------------- Run API Tests -------------------
