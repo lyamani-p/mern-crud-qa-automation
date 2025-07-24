@@ -35,7 +35,7 @@ jobs:
       # ------------------- Install and Run Frontend -------------------
       - name: Install and Start Frontend
         run: |
-          cd client
+          cd mern-crud-auth-master/client
           npm install
           npm run dev &  # React frontend (usually Vite on port 5173)
           sleep 10
